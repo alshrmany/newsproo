@@ -1,0 +1,230 @@
+{% extends 'news/home.html' %}
+
+{% block content %}
+  <style></style>
+  <body>
+    <!-- خط المسار -->
+    <div class="article-breadcrumb">
+      <div class="container">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="{% url 'news:article_list' %}">الرئيسية</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="{% url 'news:article_list' %}">الأخبار</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="#">{{ article.category.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ article.title|truncatewords:5 }}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8">
+          <!-- رسائل التنبيه -->
+          <div id="message-container">
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert-message alert-{{ message.tags }}">
+                  <i class="fas fa-check-circle"></i>{{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <!-- رأس المقال -->
+          <div class="article-header">
+            <div class="category-badge">{{ article.category.name }}</div>
+            <h1 class="article-title">{{ article.title }}</h1>
+
+            <div class="article-meta">
+              <div class="meta-item">
+                <i class="fas fa-user"></i>
+                <span>{{ article.author }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <span>{{ article.publish|date:'Y-m-d' }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-clock"></i>
+                <span>{{ article.read_time }}قراءة</span>
+              </div>
+            </div>
+            <!-- أزرار التفاعل -->
+            <div class="article-actions">
+              <!-- نموذج تفاعل واحد لجميع الأنواع -->
+              <form method="post" action="{% url 'news:handle_reaction' article.slug %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="reaction_type" id="reactionType" value="" />
+
+                <!-- زر Like -->
+                <button type="button" class="action-btn btn-like {% if user_reaction.reaction_type == 'like' %}active{% endif %}" onclick="setReaction('like', this.form)">
+                  <i class="fas fa-thumbs-up"></i>
+                  <span class="reaction-text">
+                    {% if user_reaction.reaction_type == 'like' %}
+                      {{ action.reaction_type }}
+                    {% endif %}
+                  </span>
+                  <span class="reaction-count">({{ like_count }})</span>
+                </button>
+
+                <!-- زر Dislike -->
+                <button type="button" class="action-btn btn-dislike {% if user_reaction.reaction_type == 'dislike' %}active{% endif %}" onclick="setReaction('dislike', this.form)">
+                  <i class="fas fa-thumbs-down"></i>
+                  <span class="reaction-text">
+                    {% if user_reaction.reaction_type == 'dislike' %}
+                      {{ action.reaction_type }}
+                    {% endif %}
+                  </span>
+                  <span class="reaction-count">({{ dislike_count }})</span>
+                </button>
+
+                <!-- زر الحفظ -->
+                <button type="button" class="action-btn btn-save {% if is_saved %}active{% endif %}" onclick="setReaction('save', this.form)">
+                  <i class="fas fa-bookmark"></i>
+                  {% for message in messages %}
+                  <span class="reaction-text">
+                    {% if is_saved %}
+                    {{message.tags}}
+
+
+                    {% endif %}
+                  </span>
+                  {% endfor %}
+                  <span class="save-count">({{ save_count }})</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- أزرار التفاعل -->
+
+          <!-- محتوى المقال -->
+
+          <script>
+            function setReaction(type, form) {
+              document.getElementById('reactionType').value = type
+              form.submit()
+            }
+          </script>
+
+          <!-- محتوى المقال -->
+          <div class="article-content">
+            <img src="{{ article.image.url }}" alt="صورة المقال" class="article-image" />
+
+            <div class="article-body">
+              <div class="article-text">{{ article.content|safe }}</div>
+            </div>
+          </div>
+
+          <!-- مشاركة المقال -->
+          <div class="share-section">
+            <h4><i class="fas fa-share-alt"></i> شارك هذا المقال</h4>
+            <div class="social-buttons">
+              <a href="#" class="social-btn facebook"><i class="fab fa-facebook"></i> فيسبوك</a>
+              <a href="#" class="social-btn twitter"><i class="fab fa-twitter"></i> تويتر</a>
+              <a href="#" class="social-btn whatsapp"><i class="fab fa-whatsapp"></i> واتساب</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <!-- مقالات ذات صلة -->
+          <div class="sidebar-card">
+            <h4 class="sidebar-title"><i class="fas fa-newspaper"></i> مقالات ذات صلة</h4>
+            {% for articles in related_articles %}
+            <a href="{{ articles.get_absolute_url }}">
+              <div class="related-article">
+                <img src="{{ articles.image.url }}" alt="مقال related" class="related-image" />
+
+                <div class="related-content">
+                  <h6>{{ articles.title }}</h6>
+                  <div class="related-meta">
+                    <span>{{ articles.publish|date:'Y-m-d' }}</span>
+                  </div>
+                </div>
+              </div>
+              </a>
+            {% endfor %}
+          </div>
+
+          <!-- أحدث المقالات -->
+          <div class="sidebar-card">
+            <h4 class="sidebar-title"><i class="fas fa-fire"></i> أحدث المقالات</h4>
+            {% for related in latest_articles %}
+            <a href="{% url 'news:article_detail' related.slug%}">
+              <div class="related-article">
+                {% if related %}
+                  <img src="{{ related.image.url }}" alt="eeee" class="related-image" />
+                {% endif %}
+                <div class="related-content">
+                  <h6>{{ related.content|truncatechars:15 }}</h6>
+                  <div class="related-meta">
+                    <span>{{ related.publish|date:'Y-m-d' }}</span>
+                  </div>
+                </div>
+              </div>
+              </a>
+            {% endfor %}
+          </div>
+
+          <!-- مساحة إعلانية -->
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      // دالة الإعجاب
+      function likeArticle() {
+        const messageContainer = document.getElementById('message-container')
+        messageContainer.innerHTML = `
+                                                    <div class="alert-message alert-success">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </div>
+                                                `
+
+        // إخفاء الرسالة بعد 3 ثواني
+        setTimeout(() => {
+          messageContainer.innerHTML = ''
+        }, 150)
+      }
+
+      // دالة الحفظ
+      function saveArticle() {
+        const messageContainer = document.getElementById('message-container')
+        messageContainer.innerHTML = `
+                                                    <div class="alert-message alert-info">
+                                                        <i class="fas fa-check-circle"></i> تم حفظ المقال في المفضلة!
+                                                    </div>
+                                                `
+
+        // إخفاء الرسالة بعد 3 ثواني
+        setTimeout(() => {
+          messageContainer.innerHTML = ''
+        }, 3000)
+      }
+
+      // تأثيرات التمرير
+      document.addEventListener('DOMContentLoaded', function () {
+        const elements = document.querySelectorAll('.sidebar-card, .article-content')
+        elements.forEach((el) => {
+          el.style.opacity = '0'
+          el.style.transform = 'translateY(20px)'
+          el.style.transition = 'all 0.6s ease'
+
+          setTimeout(() => {
+            el.style.opacity = '1'
+            el.style.transform = 'translateY(0)'
+          }, 100)
+        })
+      })
+    </script>
+  </body>
+{% endblock %}

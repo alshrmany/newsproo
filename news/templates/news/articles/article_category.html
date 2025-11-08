@@ -1,0 +1,49 @@
+{% extends 'news/home.html' %}
+{% load static %}
+
+{% block title %}
+  صفحة articles_category
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <section class="mb-6">
+          <h2 class="section-title">المقالات في تصنيف {{ category.name }}</h2>
+          <div class="row">
+            {% if articles %}
+              {% for article in articles %}
+                <div class="col-md-4 mb-4 card">
+                  <a href="{{ article.get_absolute_url }}">
+                    <div class="featured-card">
+                      <img src="{{ article.image.url }}" alt="خبر عاجل" class="card-img-top" />
+                      <div class="card-span">
+                        <span class="category-badge" style="margin-left: 150px;">{{ article.category.name }}</span>
+                        <span>{{ article.author }}</span>
+                      </div>
+                      <div class="card-body">
+                        <h6 class="card-title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h6>
+                        <p class="card-text">{{ article.content|truncatechars:30 }}</p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p>لا توجد مقالات في هذه الفئة.</p>
+            {% endif %}
+          </div>
+        </section>
+      {% endblock %}
+      <section>
+
+      </section>
+      </div>
+      {% include 'news/includes/sidebar.html' %}
+    </div>
+  </div>
+
+
+{% block extra_js %}
+{% endblock %}

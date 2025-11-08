@@ -1,0 +1,107 @@
+{% extends 'news/home.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="saved-articles-container">
+    <!-- الهيدر -->
+    <div class="page-header">
+      <h1 class="page-title"><i class="fas fa-bookmark"></i> المقالات المحفوظة</h1>
+      <p class="page-subtitle">جميع المقالات التي حفظتها للقراءة لاحقاً</p>
+      <div class="articles-count">{{ saved_articles.count }} مقالات محفوظة</div>
+    </div>
+
+    <!-- التصفية والبحث -->
+    {% if saved_articles %}
+    <div class="filter-section">
+      <!-- التصفية بالعلامات -->
+      <div class="tags-filter">
+        <span class="tag-filter active" data-category="all">الكل</span>
+        {% for category in categories %}
+          <span class="tag-filter" data-category="{{ category.slug }}">{{ category.name }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- شبكة المقالات -->
+    <div class="articles-grid">
+      {% for saved in saved_articles %}
+        <div class="article-card" data-category="{{ saved.article.category.slug }}">
+          {% if saved.article.image %}
+            <img src="{{ saved.article.image.url }}" alt="{{ saved.article.title }}" class="article-image" />
+          {% else %}
+            <img src="{% static 'images/default-article.jpg' %}" alt="صورة افتراضية" class="article-image" />
+          {% endif %}
+          <div class="article-content1">
+            <span class="article-category">{{ saved.article.category.name }}</span>
+            <h3 class="article-title"><a href="{{ saved.article.get_absolute_url }}">{{ saved.article.title }}</a></h3>
+            <p class="article-excerpt">{{ saved.article.content|striptags|truncatewords:30 }}</p>
+            <div class="article-meta">
+              <div class="meta-items">
+                <span class="meta-item"><i class="fas fa-calendar"></i> {{ saved.article.publish|date:'Y-m-d' }}</span>
+                <span class="meta-item"><i class="fas fa-clock"></i> {{ saved.article.read_time }} دقائق</span>
+              </div>
+              <form method="post" action="{% url 'news:unsave_artcile' saved.article.slug %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="remove-btn" onclick="return confirm('هل أنت متأكد من إزالة هذا المقال من المحفوظات؟')">
+                  <i class="fas fa-trash"></i> إزالة
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- حالة عدم وجود مقالات -->
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-bookmark"></i>
+      </div>
+      <h3 class="empty-title">لا توجد مقالات محفوظة</h3>
+      <p class="empty-text">لم تقم بحفظ أي مقالات بعد. ابدأ بتصفح المقالات وحفظ ما يعجبك!</p>
+      <a href="{% url 'news:article_list' %}" class="browse-btn"><i class="fas fa-newspaper"></i> تصفح المقالات</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <style>
+  
+  </style>
+
+  <script>
+    // تصفية المقالات حسب التصنيف
+    function filterByCategory(categorySlug) {
+      const articles = document.querySelectorAll('.article-card');
+      const filters = document.querySelectorAll('.tag-filter');
+
+      // تحديث الحالة النشطة للتصفية
+      filters.forEach(filter => {
+        if (filter.dataset.category === categorySlug) {
+          filter.classList.add('active');
+        } else {
+          filter.classList.remove('active');
+        }
+      });
+
+      // تصفية المقالات
+      articles.forEach(article => {
+        if (categorySlug === 'all' || article.dataset.category === categorySlug) {
+          article.style.display = 'block';
+        } else {
+          article.style.display = 'none';
+        }
+      });
+    }
+
+    // إضافة event listeners للتصفية
+    document.addEventListener('DOMContentLoaded', function() {
+      const filters = document.querySelectorAll('.tag-filter');
+      filters.forEach(filter => {
+        filter.addEventListener('click', function() {
+          filterByCategory(this.dataset.category);
+        });
+      });
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,319 @@
+{% extends 'news/home.html' %}
+{% load static %}
+
+{% block title %}البحث{% if query %} - {{ query }}{% endif %} - موقع الأخبار{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="search-form mb-4">
+        <form method="get" action="{% url 'news:article_search' %}">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="ابحث عن خبر" value="{{ query|default:'' }}">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="submit">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- نتائج البحث -->
+      {% if query %}
+        {% if articles %}
+          <div class="search-results">
+            <p class="results-count mb-4">
+              تم العثور على {{ articles.paginator.count }} نتيجة
+            </p>
+
+            {% for article in articles %}
+            <div class="search-result-item mb-4 p-3 border rounded">
+              <div class="row">
+                {% if article.image %}
+                <div class="col-md-3">
+                  <img src="{{ article.image.url }}" alt="{{ article.title }}"
+                       class="img-fluid rounded" style="height: 120px; object-fit: cover;">
+                </div>
+                <div class="col-md-9">
+                {% else %}
+                <div class="col-12">
+                {% endif %}
+                  <h5 class="mb-2">
+                    <a href="{{ article.get_absolute_url }}" class="text-dark text-decoration-none">
+                      {{ article.title }}
+                    </a>
+                  </h5>
+
+                  <div class="article-meta mb-2">
+                    <small class="text-muted">
+                      <i class="fas fa-user"></i> {{ article.author.get_full_name|default:article.author.username }}
+                      <i class="fas fa-calendar ms-3"></i> {{ article.publish|date:"d M Y" }}  <!-- تصحيح: publish بدل publish_date -->
+                      {% if article.category %}
+                        <i class="fas fa-folder ms-3"></i> {{ article.category.name }}
+                      {% endif %}
+                      <i class="fas fa-eye ms-3"></i> {{ article.views }}
+
+                      <!-- حالة المقال -->
+                      <span class="badge {% if article.status == 'PB' %}bg-success{% elif article.status == 'DF' %}bg-warning{% else %}bg-secondary{% endif %} ms-2">
+                        {{ article.get_status_display }}
+                      </span>
+                    </small>
+                  </div>
+
+                  <!-- عرض جزء من المحتوى -->
+                  <p class="text-muted mb-2">
+                    {% if article.content %}
+                      {{ article.content|striptags|truncatewords:25 }}
+                    {% else %}
+                      لا يوجد محتوى معاين
+                    {% endif %}
+                  </p>
+
+                  <a href="{{ article.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                    اقرأ المزيد <i class="fas fa-arrow-left"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+
+            <!-- الترقيم -->
+            {% if articles.has_other_pages %}
+            <nav aria-label="نتائج البحث">
+              <ul class="pagination justify-content-center">
+                {% if articles.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page={{ articles.previous_page_number }}">السابق</a>
+                  </li>
+                {% endif %}
+
+                {% for num in articles.paginator.page_range %}
+                  {% if articles.number == num %}
+                    <li class="page-item active">
+                      <span class="page-link">{{ num }}</span>
+                    </li>
+                  {% elif num > articles.number|add:'-3' and num < articles.number|add:'3' %}
+                    <li class="page-item">
+                      <a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if articles.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page={{ articles.next_page_number }}">التالي</a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="no-results text-center py-5">
+            <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
+            <h3 class="mt-3">لم يتم العثور على نتائج</h3>
+            <p class="text-muted">جرب البحث بكلمات مختلفة أو تحقق من الإملاء</p>
+            <div class="mt-4">
+              <a href="{% url 'news:article_list' %}" class="btn btn-primary">
+                <i class="fas fa-newspaper"></i> عرض جميع المقالات
+              </a>
+            </div>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="search-tips">
+          <h4><i class="fas fa-lightbulb text-warning"></i> نصائح للبحث:</h4>
+          <ul class="list-unstyled">
+            <li><i class="fas fa-check text-success"></i> استخدم كلمات مفتاحية واضحة</li>
+            <li><i class="fas fa-check text-success"></i> جرب مرادفات مختلفة</li>
+            <li><i class="fas fa-check text-success"></i> تأكد من الإملاء الصحيح</li>
+            <li><i class="fas fa-check text-success"></i> استخدم كلمات أقل للحصول على نتائج أكثر</li>
+          </ul>
+
+          <div class="mt-4">
+            <h5><i class="fas fa-fire text-danger"></i> الكلمات الشائعة:</h5>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <a href="?q=أخبار" class="btn btn-outline-primary btn-sm">أخبار</a>
+              <a href="?q=رياضة" class="btn btn-outline-success btn-sm">رياضة</a>
+              <a href="?q=تكنولوجيا" class="btn btn-outline-info btn-sm">تكنولوجيا</a>
+              <a href="?q=صحة" class="btn btn-outline-warning btn-sm">صحة</a>
+              <a href="?q=اقتصاد" class="btn btn-outline-secondary btn-sm">اقتصاد</a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- الشريط الجانبي -->
+    <div class="col-lg-4">
+      <div class="sidebar">
+        <!-- إحصائيات البحث -->
+        <div class="widget mb-4">
+          <h5 class="widget-title"><i class="fas fa-chart-bar"></i> إحصائيات</h5>
+          <div class="widget-content">
+            <div class="stats">
+              <div class="stat-item d-flex justify-content-between mb-2">
+                <span>المقالات المنشورة:</span>
+                <strong>{{ articles.paginator.count|default:0 }}</strong>
+              </div>
+              <div class="stat-item d-flex justify-content-between mb-2">
+                <span>الصفحات:</span>
+                <strong>{{ articles.paginator.num_pages|default:1 }}</strong>
+              </div>
+              {% if query %}
+              <div class="stat-item d-flex justify-content-between">
+                <span>كلمة البحث:</span>
+                <strong>"{{ query }}"</strong>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- أحدث المقالات -->
+        <div class="widget mb-4">
+          <h5 class="widget-title"><i class="fas fa-clock"></i> أحدث المقالات</h5>
+          <div class="widget-content">
+            {% for recent_article in featured_articles|slice:":3" %}
+            <div class="recent-article mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+              <h6 class="mb-1">
+                <a href="{{ recent_article.get_absolute_url }}" class="text-decoration-none">
+                  {{ recent_article.title|truncatewords:6 }}
+                </a>
+              </h6>
+              <small class="text-muted">{{ recent_article.publish|date:"d M" }}</small>
+            </div>
+            {% empty %}
+            <p class="text-muted">لا توجد مقالات حديثة</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- التصنيفات -->
+        <div class="widget">
+          <h5 class="widget-title"><i class="fas fa-tags"></i> التصنيفات</h5>
+          <div class="widget-content">
+            <div class="categories">
+              {% for category in categories %}
+              <a href="?q={{ category.name }}" class="d-block mb-2 text-decoration-none">
+                <i class="fas fa-folder me-2"></i> {{ category.name }}
+              </a>
+              {% empty %}
+              <p class="text-muted">لا توجد تصنيفات</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-form {
+  background: var(--paper);
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.search-result-item {
+  transition: all 0.3s ease;
+  background: var(--paper);
+  border: 1px solid var(--sep) !important;
+  border-radius: 10px;
+}
+
+.search-result-item:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: var(--brand) !important;
+}
+
+.widget {
+  background: var(--paper);
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--sep);
+}
+
+.widget-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--brand);
+  color: var(--ink);
+}
+
+.results-count {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.no-results {
+  background: var(--paper);
+  padding: 3rem;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.search-tips {
+  background: var(--paper);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.search-tips h4 {
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+
+.search-tips li {
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+}
+
+.pagination .page-link {
+  color: var(--brand);
+  background: var(--paper);
+  border: 1px solid var(--sep);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.pagination .page-link:hover {
+  background: var(--brand);
+  color: white;
+  border-color: var(--brand);
+}
+
+.stat-item {
+  color: var(--muted);
+}
+
+.recent-article h6 {
+  font-size: 0.9rem;
+}
+
+.categories a {
+  color: var(--muted);
+  transition: color 0.3s ease;
+}
+
+.categories a:hover {
+  color: var(--brand);
+}
+</style>
+{% endblock %}

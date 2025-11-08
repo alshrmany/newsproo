@@ -1,0 +1,255 @@
+{% load static %}
+
+<!-- نافذة تسجيل الدخول المنبثقة -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel"><i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- عرض رسائل Django -->
+        {% if messages %}
+          {% for message in messages %}
+            {% if 'اسم المستخدم أو كلمة المرور غير صحيحة' in message.message %}
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        <form method="post" action="{% url 'accounts:login' %}" id="loginForm">
+          {% csrf_token %}
+          <input type="hidden" name="next" id="loginNext" value="{{ request.GET.next }}" />
+
+          <div class="mb-3">
+            <label class="form-label">اسم المستخدم</label>
+            <input type="text" name="username" class="form-control" placeholder="أدخل اسم المستخدم" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">كلمة المرور</label>
+            <input type="password" name="password" class="form-control" placeholder="أدخل كلمة المرور" required />
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mb-3"><i class="fas fa-sign-in-alt me-2"></i> تسجيل الدخول</button>
+        </form>
+        <div class="text-center">
+          <p class="mb-0">
+            ليس لديك حساب؟
+            <a href="#" class="text-primary fw-bold" onclick="switchToRegister()">إنشاء حساب جديد</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة إنشاء الحساب المنبثقة -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="registerModalLabel"><i class="fas fa-user-plus me-2"></i>إنشاء حساب جديد</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- عرض رسائل أخطاء التسجيل -->
+        {% if messages %}
+          {% for message in messages %}
+            {% if 'اسم المستخدم' in message.message or 'كلمة المرور' in message.message or 'حدث خطأ' in message.message %}
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        <!-- منطقة عرض أخطاء التسجيل (للتأكد من كلمات المرور) -->
+        <div id="registerErrors" class="alert alert-danger d-none" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span id="errorText"></span>
+        </div>
+
+        <form method="post" action="{% url 'accounts:register' %}" id="registerForm">
+          {% csrf_token %}
+          <input type="hidden" name="next" id="registerNext" value="{{ request.GET.next }}" />
+
+          <div class="mb-3">
+            <label class="form-label">اسم المستخدم</label>
+            <input type="text" name="username" class="form-control" placeholder="اختر اسم مستخدم فريد" required minlength="3" maxlength="150" />
+            <div class="form-text">يجب أن يكون اسم المستخدم بين 3 و 150 حرفاً</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">كلمة المرور</label>
+            <input type="password" name="password1" class="form-control" placeholder="كلمة المرور" required minlength="8" />
+            <div class="form-text">يجب أن تكون كلمة المرور 8 أحرف على الأقل</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">تأكيد كلمة المرور</label>
+            <input type="password" name="password2" class="form-control" placeholder="تأكيد كلمة المرور" required />
+            <div class="invalid-feedback">كلمات المرور غير متطابقة</div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mb-3"><i class="fas fa-user-plus me-2"></i> إنشاء حساب</button>
+        </form>
+        <div class="text-center">
+          <p class="mb-0">
+            لديك حساب بالفعل؟
+            <a href="#" class="text-primary fw-bold" onclick="switchToLogin()">سجل الدخول هنا</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// دوال التبديل بين النوافذ
+function switchToRegister() {
+    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+    if (loginModal) loginModal.hide();
+
+    setTimeout(() => {
+        const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+        registerModal.show();
+        // مسح أي رسائل قديمة عند التبديل
+        hideRegisterErrors();
+    }, 300);
+}
+
+function switchToLogin() {
+    const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+    if (registerModal) registerModal.hide();
+
+    setTimeout(() => {
+        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.show();
+    }, 300);
+}
+
+// دوال فتح النوافذ
+function showLoginModal(nextUrl = null) {
+    if (nextUrl) {
+        document.getElementById('loginNext').value = nextUrl;
+        document.getElementById('registerNext').value = nextUrl;
+    }
+    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+    loginModal.show();
+}
+
+function showRegisterModal(nextUrl = null) {
+    if (nextUrl) {
+        document.getElementById('loginNext').value = nextUrl;
+        document.getElementById('registerNext').value = nextUrl;
+    }
+    const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+    registerModal.show();
+    hideRegisterErrors();
+}
+
+// تحقق من كلمات المرور في الوقت الحقيقي
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.querySelector('input[name="password1"]');
+    const password2 = document.querySelector('input[name="password2"]');
+
+    if (password1 && password2) {
+        // التحقق أثناء الكتابة
+        password2.addEventListener('input', function() {
+            validatePasswords();
+        });
+
+        // التحقق عند إرسال النموذج
+        const registerForm = document.getElementById('registerForm');
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(e) {
+                if (!validatePasswords()) {
+                    e.preventDefault(); // منع الإرسال إذا كلمات المرور غير متطابقة
+                }
+            });
+        }
+    }
+
+    // إعادة تعيين النماذج عند الإغلاق
+    const modals = ['loginModal', 'registerModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.addEventListener('hidden.bs.modal', function() {
+                const form = this.querySelector('form');
+                if (form) {
+                    form.reset();
+                    // إعادة تعيين حالة الحقول
+                    const inputs = form.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        input.classList.remove('is-invalid', 'is-valid');
+                    });
+                }
+                hideRegisterErrors();
+            });
+        }
+    });
+});
+
+// دالة للتحقق من كلمات المرور
+function validatePasswords() {
+    const password1 = document.querySelector('input[name="password1"]');
+    const password2 = document.querySelector('input[name="password2"]');
+
+    if (!password1 || !password2) return true;
+
+    if (password1.value !== password2.value) {
+        password2.classList.add('is-invalid');
+        showRegisterErrors('كلمات المرور غير متطابقة');
+        return false;
+    } else {
+        password2.classList.remove('is-invalid');
+        password2.classList.add('is-valid');
+        hideRegisterErrors();
+        return true;
+    }
+}
+
+function showRegisterErrors(message) {
+    const errorDiv = document.getElementById('registerErrors');
+    const errorText = document.getElementById('errorText');
+    if (errorDiv && errorText) {
+        errorText.textContent = message;
+        errorDiv.classList.remove('d-none');
+    }
+}
+
+function hideRegisterErrors() {
+    const errorDiv = document.getElementById('registerErrors');
+    if (errorDiv) errorDiv.classList.add('d-none');
+}
+
+// دالة للتحقق من التسجيل قبل تنفيذ إجراء
+function requireAuth(actionCallback, nextUrl = null) {
+    {% if user.is_authenticated %}
+        if (typeof actionCallback === 'function') actionCallback();
+    {% else %}
+        showLoginModal(nextUrl || window.location.pathname);
+    {% endif %}
+}
+
+// فتح الـ modal المناسب إذا كان هناك أخطاء في التسجيل
+document.addEventListener('DOMContentLoaded', function() {
+    {% if messages %}
+        {% for message in messages %}
+            {% if "اسم المستخدم" in message.message or "كلمة المرور" in message.message %}
+                // إذا كان هناك أخطاء في التسجيل، افتح نافذة التسجيل
+                const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+                registerModal.show();
+            {% elif "اسم المستخدم أو كلمة المرور غير صحيحة" in message.message %}
+                // إذا كان هناك خطأ في تسجيل الدخول، افتح نافذة تسجيل الدخول
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+});
+</script>

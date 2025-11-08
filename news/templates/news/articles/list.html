@@ -1,0 +1,158 @@
+{% extends 'news/home.html' %}
+{% load static %}
+
+{% block title %}
+  الصفحة الرئيسية - موقع الأخبار
+{% endblock %}
+
+{% block content %}
+  <!-- في home.html -->
+
+  <!-- شريط الأخبار العاجلة -->
+  <div class="container">
+    <!-- القسم الرئيسي -->
+
+    <div class="row">
+      <!-- المحتوى الرئيسي -->
+      <div class="col-lg-8">
+        <!-- المقالات المميزة -->
+        <section class="mb-6">
+          <h2 class="section-title">المقالات المميزة</h2>
+          <div class="row">
+            {% if featured_articles %}
+              {% for article in featured_articles %}
+                <div class="col-md-4 card">
+                  <a href="{{ article.get_absolute_url }}">
+                    <div class="featured-card">
+                      <img src="{{ article.image.url }}" alt="خبر عاجل" class="card-img-top" />
+                      <div class="card-span">
+                        <span class="category-badge">{{ article.category.name }}</span>
+                        <span class="category-badge">{{ article.author }}</span>
+                      </div>
+
+                      <div class="card-body">
+                        <h6 class="card-title"><a href="{{ article.get_absolute_url }}">{{ article.title|truncatechars:30 }}</a></h6>
+                        <p class="card-text">{{ article.content|truncatechars:30 }}</p>
+                        <div class="card-meta" style="align-content: space-between;">
+                          <span><i class="fas fa-calendar"></i>{{ article.publish|date:'Y-m-d' }}</span>
+                          <span><i class="fas fa-eye"></i>{{ article.views }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+          <div class="text-center mt-4">
+            <a href="#" class="btn-more"><i class="fas fa-plus"></i> عرض المزيد</a>
+          </div>
+        </section>
+
+        <!-- أحدث الأخبار -->
+        <section class="mb-4">
+          <h2 class="section-title">أحدث الأخبار</h2>
+          <div class="row">
+            {% for article in latest_articles %}
+              <div class="col-md-4 mb-4 card">
+                <a href="{{ article.get_absolute_url }}">
+                  <div class="featured-card">
+                    <img src="{{ article.image.url }}" alt="خبر عاجل" class="card-img-top" />
+
+                    <div class="card-span">
+                      <span class="category-badge" style="margin-left: 150px;">{{ article.category.name }}</span>
+                      <span class="category-badge">{{ article.author }}</span>
+                    </div>
+                    <div class="card-body">
+                      <h6 class="card-title"><a href="">{{ article.title|truncatechars:30 }}</a></h6>
+                      <p class="card-text">{{ article.content|truncatechars:30 }}</p>
+                      <div class="card-meta">
+                        <span><i class="fas fa-calendar"></i> {{ article.publish|date:'Y-m-d' }}</span>
+                        <span><i class="fas fa-eye"></i> {{ article.views }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="text-center mt-4">
+            <a href="#" class="btn-more"><i class="fas fa-plus"></i> عرض المزيد</a>
+          </div>
+        </section>
+      </div>
+
+      <!-- الشريط الجانبي -->
+      <div class="col-lg-4">
+        <!-- الأكثر قراءة -->
+        <div class="sidebar-widget">
+          <h3 class="widget-title">الأكثر قراءة</h3>
+          {% for read_views in read_views %}
+            <a href="{{ read_views.get_absolute_url }}">
+              <div class="popular-item">
+                <div class="popular-number">
+                  <img src="{{ read_views.image.url }}" alt="" style="background-image: cover;" />
+                </div>
+                <div class="popular-content">
+                  <h6 class="popular-title">{{ read_views.title|truncatechars:30 }}</h6>
+                  <div class="popular-meta">
+                    <i class="fas fa-eye"></i> {{ article.views }}
+                  </div>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+
+        <!-- التصنيفات -->
+
+        <!-- التصنيفات -->
+        <div class="sidebar-widget">
+          <h3 class="widget-title">التصنيفات</h3>
+          <div class="row">
+            {% for article in articles %}
+              <div class="col-6 mb-3">
+                <a href="{% url 'news:category_articles' article.category.slug %}" class="text-decoration-none">
+                  <div class="category-card">
+                    <div class="category-icon">
+                      <i class="fas fa-landmark"></i>
+                    </div>
+                    <div class="category-name" onclick="filterByCategory('{{ article.category.slug }}')">{{ article.category.name }}</div>
+                    <div class="category-count">{{ article.category.article_set.count }}مقال</div>
+                  </div>
+                </a>
+              </div>
+            {% empty %}
+              <h1>لا توجد بيانات</h1>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- الاشتراك في النشرة البريدية -->
+        <div class="sidebar-widget">
+          <div class="newsletter-form">
+            <h3 class="widget-title text-white">النشرة البريدية</h3>
+            <p class="mb-3">اشترك في نشرتنا البريدية لتصلك أحدث الأخبار</p>
+            <form id="newsletter-form">
+              <div class="input-group mb-3">
+                <input type="email" name="email" class="form-control" placeholder="بريدك الإلكتروني" required />
+                <button class="btn" type="submit"><i class="fas fa-paper-plane"></i></button>
+              </div>
+            </form>
+            <div id="newsletter-message"></div>
+          </div>
+        </div>
+
+        <!-- إعلان -->
+        <div class="sidebar-widget">
+          <div class="ad-widget">
+            <i class="fas fa-ad" style="font-size: 3rem; margin-bottom: 15px;"></i>
+            <h5>مساحة إعلانية</h5>
+            <p class="text-muted">يمكنك وضع إعلانك هنا</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

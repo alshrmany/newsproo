@@ -1,0 +1,28 @@
+
+{% extends 'news/home.html' %}
+
+
+
+من نحن
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% block content %}
+    <h1>من نحن</h1>
+    <p>هذا هو قسم من نحن في موقع الأخبار الخاص بنا. نحن ملتزمون بتقديم أحدث الأخبار والمقالات المميزة لقرائنا.</p>
+    <p>نحب أن نشارك معكم الأحداث الحالية والمهمة في العالم، ونتعلم من خلالها ونتطور معها.</p>
+    <p>نأمل أن نكون قادرين على تقديم محتوى مفيد وشيق لكم.</p>
+    <p>شكرا لزيارتكم موقعنا!</p>
+    <a href="{% url 'news:article_list' %}">العودة إلى الصفحة الرئيسية</a>
+    
+
+    <a href="{% url 'news:contact' %}">العودة إلى اتصل بنا</a>
+    {% endblock %}
+
+</body>
+</html>
