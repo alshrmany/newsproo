@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-go)c2b0y9wk#d1%yls3fa@qgky)qgsihn#i9f(=%6pi+!#2r9r'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEBUG = True
 
 
 ALLOWED_HOSTS = [
@@ -168,6 +168,11 @@ EMAIL_USE_TLS = True
 
 DEFAULT_FROM_EMAIL = 'osamh@gmail.com'
 
+# إعدادات الجلسات والأمان
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 # الوسائط
 
 
