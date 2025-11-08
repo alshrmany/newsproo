@@ -28,14 +28,52 @@ SECRET_KEY = 'django-insecure-go)c2b0y9wk#d1%yls3fa@qgky)qgsihn#i9f(=%6pi+!#2r9r
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# السماح بجميع نطاقات Railway تلقائياً
+RAILWAY_PUBLIC_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 
 ALLOWED_HOSTS = [
-    'osamh_ahmed_al.onrender.com',
+    'your-django-app-production-8182.up.railway.app',
+    '.up.railway.app',
+    '.railway.app',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
 ]
 
+# إذا كان هناك نطاق مخصص في Railway
+if RAILWAY_PUBLIC_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://your-django-app-production-8182.up.railway.app',
+    'https://*.up.railway.app',
+    'https://*.railway.app',
+]
+
+# إضافة النطاق المخصص إذا كان موجوداً
+if RAILWAY_PUBLIC_DOMAIN:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_PUBLIC_DOMAIN}')
+
+# لل development محلياً
+if DEBUG:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
+    CSRF_TRUSTED_ORIGINS.extend(['http://localhost:8000', 'http://127.0.0.1:8000'])
+
+if os.environ.get('RUN_MAIN') or not os.environ.get('DJANGO_SETTINGS_MODULE'):
+    try:
+        from django.core.management import execute_from_command_line
+        execute_from_command_line(['manage.py', 'create_superuser'])
+    except:
+        pass
+
+ALLOWED_HOSTS = ['your-django-app-production-d07a.up.railway.app', '.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://your-django-app-production-d07a.up.railway.app']
 
 
 SITE_ID=1
@@ -168,12 +206,7 @@ EMAIL_USE_TLS = True
 
 DEFAULT_FROM_EMAIL = 'osamh@gmail.com'
 
-# إعدادات الجلسات والأمان
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-# الوسائط
+
 
 
 # Default primary key field type
